@@ -9,14 +9,26 @@ def get_input():
     command[0] = command[0].upper()
     return command
 
-def list(client, connected):
+def list_files(client, connected):
     if connected == True:
         client.sendall("LIST".encode())
         print("\n" + client.recv(1024).decode() + "\n")
     else:
         print("Client is not connected\n")
         
-#def retrieve
+def retrieve(client, connected, filename):
+    if connected == True:
+        client.sendall(("RETRIEVE " + filename).encode())
+        filesize = client.recv(1024).decode()
+        
+        file = open(filename, "wb")
+        file_data = client.recv(int(filesize), socket.MSG_WAITALL)
+        file.write(file_data)
+        file.close()
+        
+        print("Client retrieved file: " + filename + "\n")
+    else:
+        print("Client is not connected\n")
         
 def store(client, connected, filename):
     if connected == True:
@@ -37,6 +49,12 @@ def store(client, connected, filename):
         print("Client is not connected\n")
 
 def main():
+    command_list = ["CONNECT 127.0.0.1 4444: connect to the server",
+    "LIST: display all files on server", 
+    "RETRIEVE <filename>: retrieve the file named <filename> from the server",
+    "STORE <filename>: store the file named <filename> on the server",
+    "QUIT: terminate connection and shut down server"]
+    
     connected = False
 
     command = get_input()
@@ -56,9 +74,10 @@ def main():
             else:
                 print("Client already connected\n")
         elif command[0] == "LIST":
-            list(client, connected)
-        #elif command[0] == "RETRIEVE":
-        elif command[0] == "STORE":
+            list_files(client, connected)
+        elif command[0] == "RETRIEVE" and len(command) > 1:
+            retrieve(client, connected, command[1])
+        elif command[0] == "STORE" and len(command) > 1:
             store(client, connected, command[1])
         elif command[0] == "QUIT":
             if connected == True:
@@ -67,9 +86,10 @@ def main():
             print("Terminating connection ...\n")
             break  
         else:
-            print("Valid commands are CONNECT, LIST, RETRIEVE, STORE, QUIT")
-             #TODO nicer output for commands? use a dictionary?
-             #TODO make sure correct number of parameters for each command
+            print("VALID COMMANDS\n")
+            print("--------------\n")
+            for command in command_list:
+                print(command + "\n")
         
         command = get_input()
     
