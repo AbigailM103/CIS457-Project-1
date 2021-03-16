@@ -1,52 +1,11 @@
 import socket
 import os
-import sys
-import time
 
 def get_input():
     command = str(input("Enter command:\n"))
     command = command.split(" ")
     command[0] = command[0].upper()
     return command
-
-def list_files(client, connected):
-    if connected == True:
-        client.sendall("LIST".encode())
-        print("\n" + client.recv(1024).decode() + "\n")
-    else:
-        print("Client is not connected\n")
-        
-def retrieve(client, connected, filename):
-    if connected == True:
-        client.sendall(("RETRIEVE " + filename).encode())
-        filesize = client.recv(1024).decode()
-        
-        file = open(filename, "wb")
-        file_data = client.recv(int(filesize), socket.MSG_WAITALL)
-        file.write(file_data)
-        file.close()
-        
-        print("Client retrieved file: " + filename + "\n")
-    else:
-        print("Client is not connected\n")
-        
-def store(client, connected, filename):
-    if connected == True:
-        try:
-            filesize = os.path.getsize("./" + filename)
-        except:
-            print("Error locating file")
-            return
-            
-        client.sendall(("STORE " + filename + " " + str(filesize)).encode())
-        file = open(filename, 'rb')
-        file_data = file.read(1024)
-        client.sendall(file_data)
-        file.close()
-        
-        print("\n" + client.recv(1024).decode() + "\n")
-    else:
-        print("Client is not connected\n")
 
 def main():
     command_list = ["CONNECT 127.0.0.1 4444: connect to the server",
@@ -68,7 +27,7 @@ def main():
                     print("Connected to host " + command[1] + " at port " + command[2])
                     connected = True
                 except:
-                    print("Connection error")
+                    print("Connection error\n")
                     connected = False
                     print(command)
             else:
@@ -92,7 +51,44 @@ def main():
                 print(command + "\n")
         
         command = get_input()
-    
+        
+def list_files(client, connected):
+    if connected == True:
+        client.sendall("LIST".encode())
+        print("\n" + client.recv(1024).decode() + "\n")
+    else:
+        print("Client is not connected\n")
+        
+def retrieve(client, connected, filename):
+    if connected == True:
+        try:
+            client.sendall(("RETRIEVE " + filename).encode())
+            filesize = client.recv(1024).decode()
+        
+            file_data = client.recv(int(filesize), socket.MSG_WAITALL)
+            file = open(filename, "wb")
+            file.write(file_data)
+            file.close()
+            print("Client retrieved file: " + filename + "\n")
+        except:
+            print("Error retrieving file\n")
+    else:
+        print("Client is not connected\n")
+        
+def store(client, connected, filename):
+    if connected == True:
+        if os.path.isfile("./" + filename):
+            filesize = os.path.getsize("./" + filename)
+            client.sendall(("STORE " + filename + " " + str(filesize)).encode())
+            file = open(filename, 'rb')
+            file_data = file.read(1024)
+            client.sendall(file_data)
+            file.close()
+            print("\n" + client.recv(1024).decode() + "\n")
+        else:
+            print("Error locating file\n")
+    else:
+        print("Client is not connected\n")
 
 if __name__ == "__main__":
     main()

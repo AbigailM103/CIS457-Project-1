@@ -1,42 +1,6 @@
 import socket
 import os
     
-def list_files(client):
-    try:
-        directory = os.getcwd()
-        files = os.listdir(directory)
-        files_list = "\n".join(files)
-        client.sendall(files_list.encode())
-    except:
-        print("Error listing files\n")
-        client.sendall("Error listing files".encode())
-        
-def retrieve(client, filename):
-    try:
-        filesize = os.path.getsize("./" + filename)
-    except:
-        print("Error locating file\n")
-        client.sendall("File not found\n".encode())
-        return
-        
-    client.sendall(str(filesize).encode())
-    file = open(filename, 'rb')
-    file_data = file.read(1024)
-    client.sendall(file_data)
-    file.close()
-
-def store(client, filename, filesize):
-    try:
-        file = open(filename, "wb")
-        file_data = client.recv(int(filesize), socket.MSG_WAITALL)
-        file.write(file_data)
-        file.close()
-        client.sendall("Server stored file".encode())
-        print("Server stored file: " + filename + "\n")
-    except:
-        print("Error storing file\n")
-        client.sendall("Error storing file".encode())
-    
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
@@ -70,6 +34,41 @@ def main():
             print("Shutting down server ...")
             server.close()
             break
+            
+def list_files(client):
+    try:
+        directory = os.getcwd()
+        files = os.listdir(directory)
+        files_list = "\n".join(files)
+        client.sendall(files_list.encode())
+    except:
+        print("Error listing files\n")
+        client.sendall("Error listing files".encode())
+        
+def retrieve(client, filename):
+    if os.path.isfile("./" + filename):
+        filesize = os.path.getsize("./" + filename)
+        client.sendall(str(filesize).encode())
+        file = open(filename, 'rb')
+        file_data = file.read(1024)
+        client.sendall(file_data)
+        file.close()
+    else:
+        print("Error locating file\n")
+        client.sendall("File not found\n".encode())
+        return
+        
+def store(client, filename, filesize):
+    try:
+        file = open(filename, "wb")
+        file_data = client.recv(int(filesize), socket.MSG_WAITALL)
+        file.write(file_data)
+        file.close()
+        client.sendall("Server stored file".encode())
+        print("Server stored file: " + filename + "\n")
+    except:
+        print("Error storing file\n")
+        client.sendall("Error storing file".encode())
             
 if __name__ == "__main__":
     main()
