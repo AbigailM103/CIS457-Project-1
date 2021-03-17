@@ -5,48 +5,39 @@ import os
 # Authors: Amela Aganovic, Abigail McDonald
 # Version: Winter 2021
 
-def main():  
+def main():
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
     ip = "127.0.0.1"
     port = 4444
     
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((ip, port))
     server.listen()
     print("Server is active\n")
+    client, address = server.accept()
     
-    connection = 0
-    
-    if connection == 0:
-        client, address = server.accept()
-        connection = 1
-    
-    with client:
-        while True:
-            if connection == 0:
-                client, address = server.accept()
-                connection = 1
-                
-            print(f"Connected: {address[0]}:{address[1]}")
-            request = client.recv(1024).decode()
-            
-            request = request.split(" ")
-            request[0] = request[0].upper()
-    
-            print("Request from client is " + str(request[0]))
+    while True:
+        print(f"Connected: {address[0]}:{address[1]}")
         
-            if request[0] == "LIST":
-                list_files(client)
-            elif request[0] == "RETRIEVE":
-                print("Retrieve request is " + str(request[0]) + " " + str(request[1]))
-                retrieve(client, request[1]);
-            elif request[0] == "STORE":
-                print("Store request is " + str(request[0]) + " " + str(request[1]) + " " + str(request[2]))
-                store(client, request[1], request[2])
-            elif request[0] == "QUIT":
-                print("Client disconnected.\n")
-                client.shutdown(socket.SHUT_RDWR)
-                client.close()
-                connection = 0
+        request = client.recv(1024).decode()
+        
+        request = request.split(" ")
+        request[0] = request[0].upper()
+    
+        print("Request from client is " + str(request[0]))
+        
+        if request[0] == "LIST":
+            list_files(client)
+        elif request[0] == "RETRIEVE":
+            print("Retrieve request is " + str(request[0]) + " " + str(request[1]))
+            retrieve(client, request[1]);
+        elif request[0] == "STORE":
+            print("Store request is " + str(request[0]) + " " + str(request[1]) + " " + str(request[2]))
+            store(client, request[1], request[2])
+        elif request[0] == "QUIT":
+            print("Shutting down server ...")
+            server.close()
+            break
             
 def list_files(client):
     try:
