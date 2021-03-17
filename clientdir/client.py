@@ -1,6 +1,10 @@
 import socket
 import os
 
+# An FTP client program.
+# Authors: Amela Aganovic, Abigail McDonald
+# Version: Winter 2021
+
 def get_input():
     command = str(input("Enter command:\n"))
     command = command.split(" ")

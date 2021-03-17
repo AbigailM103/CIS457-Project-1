@@ -1,6 +1,10 @@
 import socket
 import os
     
+# An FTP server program.
+# Authors: Amela Aganovic, Abigail McDonald
+# Version: Winter 2021
+
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
